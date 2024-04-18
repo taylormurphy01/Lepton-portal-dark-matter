@@ -1,0 +1,141 @@
+
+(* ************************** *)
+(* *****  Information   ***** *)
+(* ************************** *)
+M$ModelName = "Lepton portal dark matter";
+
+M$Information = {
+  Authors      -> {"T. Murphy"}, 
+  Version      -> "1.0",
+  Date         -> "18. 04. 2023",
+  Emails -> {"murphy@lpthe.jussieu.fr"}
+};
+
+M$InteractionOrderHierarchy = {
+  {QCD, 1},
+  {QED, 2},
+  {NP,2}
+};
+
+(* ************************** *)
+(* **** Particle classes **** *)
+(* ************************** *)
+M$ClassesDescription = {
+
+(* Physical bSM *)
+
+F[49] == {
+    ClassName-> sLm,
+    SelfConjugate    -> False,
+    QuantumNumbers   -> {Q -> -1},
+    Mass             -> {MsLm, 125},
+    Width            -> {WsLm, 1}, 
+    PropagatorLabel  -> "sLm",
+    PropagatorType   -> Straight, 
+    PropagatorArrow  -> Forward,
+    ParticleName     -> "sL-",
+    AntiParticleName -> "sL+",
+    FullName         -> "vector-like lepton from weak singlet"
+  },
+  
+F[50] == {
+    ClassName-> dN,
+    SelfConjugate    -> False,
+    QuantumNumbers   -> {Q -> 0},
+    Mass             -> {MdN, 100},
+    Width            -> {WdN, 1}, 
+    PropagatorLabel  -> "dN",
+    PropagatorType   -> Straight, 
+    PropagatorArrow  -> Forward,
+    ParticleName     -> "dN",
+    AntiParticleName -> "dN~",
+    FullName         -> "vector-like neutrino from weak doublet"
+  },
+
+F[51] == {
+    ClassName-> dLm,
+    SelfConjugate    -> False,
+    QuantumNumbers   -> {Q -> -1},
+    Mass             -> {MdLm, 125},
+    Width            -> {WdLm, 1}, 
+    PropagatorLabel  -> "dLm",
+    PropagatorType   -> Straight, 
+    PropagatorArrow  -> Forward,
+    ParticleName     -> "dL-",
+    AntiParticleName -> "dL+",
+    FullName         -> "vector-like lepton from weak doublet"
+  },
+  
+S[100] == {
+    ClassName-> DM,
+    SelfConjugate    -> False,
+    QuantumNumbers   -> {LeptonNumber -> -1},
+    Mass             -> {MDM, 100},
+    Width            -> 0, 
+    PropagatorLabel  -> "X",
+    PropagatorType   -> D,
+    PropagatorArrow  -> None,
+    ParticleName     -> "~X",
+    AntiParticleName -> "~X~",
+    FullName         -> "Dark matter"
+  },
+  
+(* Unphysical bSM *)
+
+F[52] == {
+    ClassName-> sL,
+    SelfConjugate    -> False,
+    Unphysical -> True,
+    QuantumNumbers -> {Y -> -1},
+    Definitions -> { sL[sp_] -> sLm[sp] }
+  },
+  
+F[53] == {
+    ClassName-> dL,
+    SelfConjugate    -> False,
+    Unphysical -> True,
+    Indices        -> {Index[SU2D]},
+    FlavorIndex -> SU2D,
+    QuantumNumbers -> {Y -> -1/2},
+    Definitions -> { dL[sp1_,1] -> dN[sp1], dL[sp1_,2] -> dLm[sp1] }
+  }
+  
+  };
+
+(* ********************************* *)
+(* *****   import parameters   ***** *)
+(* ********************************* *)
+
+M$Parameters = {
+
+  kapDM == {
+    ParameterType -> External,
+    Indices -> {Index[Generation]},
+    InteractionOrder -> {NP,1},
+    BlockName -> singVLL,
+    Value -> {kapDM[1] -> 0.1, kapDM[2] ->0.1, kapDM[3] -> 0.1},
+    TeX -> Subscript[\[Kappa],X],
+    Description -> "singlet VLL Yukawa couplings"
+  },
+
+  lamDM == {
+    ParameterType -> External,
+    Indices -> {Index[Generation]},
+    InteractionOrder -> {NP,1},
+    BlockName -> doubVLL,
+    Value -> {lamDM[1] -> 0.1, lamDM[2] ->0.1, lamDM[3] -> 0.1},
+    TeX -> Subscript[\[Lambda],X],
+    Description -> "doublet VLL Yukawa couplings"
+  }
+  
+}
+
+(* ************************** *)
+(* *****   Lagrangian   ***** *)
+(* ************************** *)
+
+LKin := Block[{mu}, ExpandIndices[ del[DMbar,mu].del[DM,mu] - MDM^2 DMbar DM + I*(sLbar.Ga[mu].DC[sL, mu]) - MsL sLbar.sL + I*(dLbar.Ga[mu].DC[dL, mu]) - MdL dLbar.dL ]];
+
+LDM := Block[{mu,ww,ff,sp1}, ExpandIndices[ DM ( kapDM[ff] sLbar[sp1].lR[sp1,ff] + lamDM[ff] dLbar[sp1,ww].LL[sp1,ww,ff] ) ]];
+
+LBSM := LKin + LDM + HC[LDM];
